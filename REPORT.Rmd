@@ -1,0 +1,255 @@
+---
+title: "Data Wrangling Report"
+author: "Fangnong Dai"
+date: "5/7/2021"
+output:
+  html_document: default
+  pdf_document: default
+geometry: margin=1in
+fontsize: 11pt
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.height = 6, fig.width = 10)
+```
+
+## Abstract
+
+Movies, as people's entertainment, have been influencing people in all walks of life. Through sentiment analysis on IMDb movies, it is explored that current movies, whether they are popular or highly praised, tend to write more negative information in the movie description. Perhaps this is just a means to attract the audience, because humans enjoy the process of overcoming difficulties, but it is undeniable that negative things in the film account for a large proportion. 
+
+## Data collection
+
+The data acquisition is divided into two stages. First, an api key is obtained on the website:https://imdb-api.com/api, and four lists are crawled. Bsically, they are top 250 movies, popular movies, top 250 tvs and popular tvs. In each dataset, ID, tittle, year, image, crew, IMDb rating and IMDb rating count are displayed. Apparently, there is not much information, for example, no genres, no description, no reviews. Hence, finding a data source in kaggle to make a supplement: https://www.kaggle.com/stefanoleone992/imdb-extensive-dataset?select=IMDb+ratings.csv. In the attached kaggle data source, only selected genre, duration, country, description in the IMDb movies.csv file into our original data sets, and thereby created two new dataset. E.g. the following is attributes for top 250 movies. 
+
+```{r}
+library(tidyverse)
+head(df_250m_ex)
+```
+
+Because this data in kaggle was collected in 2020. There is a time gap between this and the one collected from IMDb API, causing some missing values. As the figure indicates, no records for Zack Snyder's Justice League and Soul. As for popular movies, there are around half of the movies have no records in genre, duration, country, description.
+```{r}
+df_250m_ex %>% select(id, rank, title, year, genre, duration, country, description) %>% 
+  filter(genre == 0 | duration == 0 | country == 0| description == 0)
+df_250m_ex %>% select(id, rank, title, year) %>% filter(year>2019)
+```
+
+
+In this process, perhaps due to that, in the direction of TV series, there are many self-operated platforms such as Netflix, which can support watches, evaluates and discussions, there is not much information about IMDB's TV series data. Therefore, the TV series data will not be discussed in the this project.
+
+
+## Data Visualization
+
+When considering what distinguishes the two series, the first thing that comes to mind is time. There may be some recent movies in the popular series. Therefore, first look at the relationship between time and ratings in the two lists. 
+
+```{r}
+rate_vs_year_250m <- as.data.frame(cbind(as.numeric(df_250movies$imDbRating),as.numeric(df_250movies$year))
+)
+
+
+ggplot(rate_vs_year_250m, aes(x = V2, y = V1)) +
+  geom_point() +  xlab("Year") + ylab("Rating") +
+  labs(subtitle = "Year Vs Rating in top 250 movies", title = "Scatterplot", caption = "Source: df_250movies")
+
+rate_vs_year_popum <- as.data.frame(cbind(as.numeric(df_popumovies$imDbRating),as.numeric(df_popumovies$year))
+)
+
+
+ggplot(rate_vs_year_popum, aes(x = V2, y = V1)) +
+  geom_point() +  xlab("Year") + ylab("Rating") +
+  labs(subtitle = "Year Vs Rating in popular movies", title = "Scatterplot", caption = "Source: df_popumovies")
+```
+
+It can be concluded that time has no much affect on appreaciation of movies. Although this website is constructed in 1990, many people came to rate movies before that. The concentrated points at the right hand side imply that excellent movies entering the top 250 consequently, especially in 2020, which is a important suggestion that coronavirus did not devestate our file industry.
+
+As for ratings, there are some classic movies that are hard to surpass, whether in terms of evaluation or popularity. The Shawshank Redemption (1994) and The Godfather (1972) are both highly evaluated movies, also occupy certain positions in the list of popular movies.
+
+```{r}
+rate_vs_count_250m <- as.data.frame(cbind(as.numeric(df_250movies$imDbRating),as.numeric(df_250movies$imDbRatingCount))
+)
+
+
+ggplot(rate_vs_year_250m, aes(x = V2, y = V1)) +
+  geom_point() +  xlab("Count") + ylab("Rating") +
+  labs(subtitle = "Count Vs Rating in top 250 movies", title = "Scatterplot", caption = "Source: df_250movies")
+
+
+rate_vs_count_popum <- as.data.frame(cbind(as.numeric(df_popumovies$imDbRating),as.numeric(df_popumovies$imDbRatingCount))
+)
+
+
+ggplot(rate_vs_count_popum, aes(x = V2, y = V1)) +
+  geom_point() +  xlab("Count") + ylab("Rating") +
+  labs(subtitle = "Count Vs Rating in popular movies", title = "Scatterplot", caption = "Source: df_popumovies")
+
+```
+
+
+Seperate genres into individual topic, and plot the mean, maximum and minimum ratings in two lists. 
+
+```{r}
+
+plotdf %>% ggplot(aes(genre, means))+ geom_bar(stat = "identity", width = 0.5, fill = "tomato3") +
+  xlab("New Genre") + ylab("Mean rating") +
+  labs(subtitle = "Genre Vs Rating in top 250 movies", title = "Barplot", caption = "Source: df_250m_ex") +
+  theme(axis.text.x = element_text(angle = 65, vjust = 0.6))
+
+
+plotdf %>% ggplot(aes(genre, maxi))+ geom_bar(stat = "identity", width = 0.5, fill = "tomato3") +
+  xlab("New Genre") + ylab("Maximum rating") +
+  labs(subtitle = "Genre Vs Rating in top 250 movies", title = "Barplot", caption = "Source: df_250m_ex") +
+  theme(axis.text.x = element_text(angle = 65, vjust = 0.6))
+
+
+plotdf %>% ggplot(aes(genre, mini))+ geom_bar(stat = "identity", width = 0.5, fill = "tomato3") +
+  xlab("New Genre") + ylab("Minimum rating") +
+  labs(subtitle = "Genre Vs Rating in top 250 movies", title = "Barplot", caption = "Source: df_250m_ex") +
+  theme(axis.text.x = element_text(angle = 65, vjust = 0.6))
+
+library(data.table)
+genres_df <- df_popu_ex %>% select(genre, imDbRating)
+genres_df$Action = sapply(1:41, function(x) if (genres_df[x, 1] %like% "Action")1 else 0)
+
+genres_df$Adventure = sapply(1:41, function(x) if (genres_df[x, 1] %like% "Adventure")1 else 0)
+
+genres_df$Biography = sapply(1:41, function(x) if (genres_df[x, 1] %like% "Biography")1 else 0)
+genres_df$Comedy = sapply(1:41, function(x) if (genres_df[x, 1] %like% "Comedy")1 else 0)
+genres_df$Crime = sapply(1:41, function(x) if (genres_df[x, 1] %like% "Crime")1 else 0)
+genres_df$Drama = sapply(1:41, function(x) if (genres_df[x, 1] %like% "Drama")1 else 0)
+genres_df$Family = sapply(1:41, function(x) if (genres_df[x, 1] %like% "Family")1 else 0)
+genres_df$Fantasy = sapply(1:41, function(x) if (genres_df[x, 1] %like% "Fantasy")1 else 0)
+
+genres_df$Horror = sapply(1:41, function(x) if (genres_df[x, 1] %like% "Horror")1 else 0)
+
+genres_df$Mystery = sapply(1:41, function(x) if (genres_df[x, 1] %like% "Mystery")1 else 0)
+genres_df$Romance = sapply(1:41, function(x) if (genres_df[x, 1] %like% "Romance")1 else 0)
+genres_df$SciFi = sapply(1:41, function(x) if (genres_df[x, 1] %like% "Sci-Fi")1 else 0)
+genres_df$Sport = sapply(1:41, function(x) if (genres_df[x, 1] %like% "Sport")1 else 0)
+genres_df$Thriller = sapply(1:41, function(x) if (genres_df[x, 1] %like% "Thriller")1 else 0)
+genres_df$War = sapply(1:41, function(x) if (genres_df[x, 1] %like% "War")1 else 0)
+
+
+means1 <- rep(0,15)
+for (i in 1:15) {
+  means1[i] <- mean(as.numeric(genres_df$imDbRating[genres_df[i+2]==1]))
+}
+# plot the means
+ge1 = c("Action", "Adventure", "Biography", "Comedy", "Crime", "Drama", "Family", "Fantasy", 
+       "Horror", "Mystery", "Romance", "SciFi", "Sport", "Thriller", "War")
+barplot(means1, main = "Average IMDb rating for different genres")
+
+plotdf1 = as_tibble(means1) %>% mutate("genre"=0)
+plotdf1$genre = ge1
+plotdf1 %>% mutate("maxi" = 0) 
+plotdf1 %>% mutate("mini" = 0)
+ma1 <- rep(0,15)
+for (i in 1:15) {
+  ma1[i] <- max(as.numeric(genres_df$imDbRating[genres_df[i+2]==1]))
+}
+mi1 <- rep(0,15)
+for (i in 1:15) {
+  mi1[i] <- min(as.numeric(genres_df$imDbRating[genres_df[i+2]==1]))
+}
+
+plotdf1$maxi = ma1
+plotdf1$mini = mi1
+plotdf1 %>% ggplot(aes(genre, means1))+ geom_bar(stat = "identity", width = 0.5, fill = "tomato3") +
+  xlab("New Genre") + ylab("Mean rating") +
+  labs(subtitle = "Genre Vs Rating in popular movies", title = "Barplot", caption = "Source: df_popu_ex") +
+  theme(axis.text.x = element_text(angle = 65, vjust = 0.6))
+
+
+plotdf1 %>% ggplot(aes(genre, maxi))+ geom_bar(stat = "identity", width = 0.5, fill = "tomato3") +
+  xlab("New Genre") + ylab("Maximum rating") +
+  labs(subtitle = "Genre Vs Rating in popular movies", title = "Barplot", caption = "Source: df_popu_ex") +
+  theme(axis.text.x = element_text(angle = 65, vjust = 0.6))
+
+plotdf1 %>% ggplot(aes(genre, mini))+ geom_bar(stat = "identity", width = 0.5, fill = "tomato3") +
+  xlab("New Genre") + ylab("Minimum rating") +
+  labs(subtitle = "Genre Vs Rating in popular movies", title = "Barplot", caption = "Source: df_popu_ex") +
+  theme(axis.text.x = element_text(angle = 65, vjust = 0.6))
+
+
+```
+
+There is not much difference in ratings for different genres in top 250 list, indicating top 250 is a very fair list. Each genre shares similar average rating. However, list of popular movies is in totally distinct situation. In other words, the preferences of audience for different genres are obvious. The genres in popular movies are even less than the genres in top 250 list, for example, no western, no musical in popular list.
+
+
+
+## Sentiment analysis
+
+It seems to be difficult to distinguish in ratings of movies by only looking as the genre, especially in the top 250 movies. As a result, a sentiment analysis was conducted on the description of movies. Some common features are presented in the following figure: world, family, war and crime. There is a correlation coefficient, 0.3414 though not large.
+
+```{r}
+freq <- bind_rows(mutate(word_250, movie = "top 250"),
+                  mutate(word_popu, movie = "popular")) %>%
+  mutate(word = str_extract(word, "[a-z]+")) %>% # exclude words in abnormal format, e.g. any'day
+  count(movie, word) %>%
+  group_by(movie) %>% 
+  mutate(proportion = n / sum(n)) %>% # compute frequency after grouping
+  select(-n) # no need to look at n now
+
+# create seperate columns for comparison
+frequency <- freq %>% pivot_wider(names_from = "movie", values_from = "proportion")
+frequency
+
+# Plot proportions of words used in two movie lists:
+ggplot(frequency, aes(x = `top 250`, y = `popular`)) +
+  geom_abline(color = "red", lty = 2, lwd = 2) +
+  geom_point(color = "grey") + 
+  geom_text(aes(label = word), check_overlap = T) +
+  scale_x_log10() + scale_y_log10()
+
+frequency %>% filter(!(`top 250` == "NA" | `popular` == "NA")) %>% select(,2:3) %>% cor()
+```
+
+Then check the 10 most common bigrams. Perhaps people are care about war, the top three bigrams in the top 250 movies are related to war, whether in reality or in fictional world.
+
+```{r}
+library(tidytext)
+library(tidyr)
+# ten most common bigrams in two lists
+bigram_250 <- df_250m_ex %>% unnest_tokens(bigram, description, token = "ngrams", n = 2) %>%
+  filter(bigram != "NA")
+# Split out the words in a pair and delete the pairs with a stop word in them
+bigram_250 %>% separate(bigram, c("word1", "word2"), sep = " ") %>%
+  filter(!word1 %in% stop_words$word) %>%    # Delete pairs with at least one stop word
+  filter(!word2 %in% stop_words$word) %>%
+  unite(bigram, word1, word2, sep = " ") %>%
+  count(bigram, sort = T)
+
+bigram_popu <- df_popu_ex %>% unnest_tokens(bigram, description, token = "ngrams", n = 2) %>%
+  filter(bigram != "NA")
+# Split out the words in a pair and delete the pairs with a stop word in them
+bigram_popu %>% separate(bigram, c("word1", "word2"), sep = " ") %>%
+  filter(!word1 %in% stop_words$word) %>%    # Delete pairs with at least one stop word
+  filter(!word2 %in% stop_words$word) %>%
+  unite(bigram, word1, word2, sep = " ") %>%
+  count(bigram, sort = T)
+```
+
+
+Compute the attitude for movies in the two list. No matter which list the description is in, there are more negative information than positive. In the list of the top 250 movies, it is surprised to see that a trend of decreasing in negative information as the scores rising.
+
+```{r}
+tidy_movie <- bind_rows(mutate(word_250, movie = "top 250"),
+                       mutate(word_popu, movie = "popular")) %>% 
+  mutate(word = str_extract(word, "[a-z]+")) %>%   
+  group_by(movie) %>%
+  select(word, movie, title, imDbRating) 
+tidy_movie
+
+movie_sentiment <- tidy_movie %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(movie, index = imDbRating, sentiment) %>%
+  spread(sentiment, n, fill = 0) %>%
+  mutate(sentiment = positive - negative)
+
+ggplot(movie_sentiment, aes(index, sentiment, fill = movie)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~movie, ncol = 2, scales = "free_x")
+```
+
+
+## Discussion
+Among the current mainstream genres, high-scoring movies can be produced under any genre. However, war movies, perhaps due to their high production costs, generally get a not-low rating. In the descriptions of these movies, more negative words appear. Does it reflect that the current movies convey too much negative information? Or maybe negative adjectives are more attractive to the audience. Do these movies make people feel positive or negative? Maybe in the future it is worthwhile to collect these movie-related reviews to study this point. Also, topic models by LDA was tried but failed. It is possible due to insufficient variables, the topic model did not fit a result.
+
