@@ -23,6 +23,10 @@ The data acquisition is divided into two stages. First, an api key is obtained o
 
 ```{r}
 library(tidyverse)
+df_250movies <- as_tibble(read.csv('df_250movies.csv'))
+df_250m_ex <- as_tibble(read.csv('df_250m_ex.csv'))
+df_popumovies <- as_tibble(read.csv('df_popumovies.csv'))
+df_popu_ex <- as_tibble(read.csv('df_popu_ex.csv'))
 head(df_250m_ex)
 ```
 
@@ -88,7 +92,10 @@ Seperate genres into individual topic, and plot the mean, maximum and minimum ra
 
 ```{r}
 
-plotdf %>% ggplot(aes(genre, means))+ geom_bar(stat = "identity", width = 0.5, fill = "tomato3") +
+plotdf < as_tibble(read.csv('plotdf.csv'))
+plotdf1 < as_tibble(read.csv('plotdf1.csv'))
+
+plotdf %>% ggplot(aes(genre, value))+ geom_bar(stat = "identity", width = 0.5, fill = "tomato3") +
   xlab("New Genre") + ylab("Mean rating") +
   labs(subtitle = "Genre Vs Rating in top 250 movies", title = "Barplot", caption = "Source: df_250m_ex") +
   theme(axis.text.x = element_text(angle = 65, vjust = 0.6))
@@ -105,54 +112,12 @@ plotdf %>% ggplot(aes(genre, mini))+ geom_bar(stat = "identity", width = 0.5, fi
   labs(subtitle = "Genre Vs Rating in top 250 movies", title = "Barplot", caption = "Source: df_250m_ex") +
   theme(axis.text.x = element_text(angle = 65, vjust = 0.6))
 
-library(data.table)
-genres_df <- df_popu_ex %>% select(genre, imDbRating)
-genres_df$Action = sapply(1:41, function(x) if (genres_df[x, 1] %like% "Action")1 else 0)
-
-genres_df$Adventure = sapply(1:41, function(x) if (genres_df[x, 1] %like% "Adventure")1 else 0)
-
-genres_df$Biography = sapply(1:41, function(x) if (genres_df[x, 1] %like% "Biography")1 else 0)
-genres_df$Comedy = sapply(1:41, function(x) if (genres_df[x, 1] %like% "Comedy")1 else 0)
-genres_df$Crime = sapply(1:41, function(x) if (genres_df[x, 1] %like% "Crime")1 else 0)
-genres_df$Drama = sapply(1:41, function(x) if (genres_df[x, 1] %like% "Drama")1 else 0)
-genres_df$Family = sapply(1:41, function(x) if (genres_df[x, 1] %like% "Family")1 else 0)
-genres_df$Fantasy = sapply(1:41, function(x) if (genres_df[x, 1] %like% "Fantasy")1 else 0)
-
-genres_df$Horror = sapply(1:41, function(x) if (genres_df[x, 1] %like% "Horror")1 else 0)
-
-genres_df$Mystery = sapply(1:41, function(x) if (genres_df[x, 1] %like% "Mystery")1 else 0)
-genres_df$Romance = sapply(1:41, function(x) if (genres_df[x, 1] %like% "Romance")1 else 0)
-genres_df$SciFi = sapply(1:41, function(x) if (genres_df[x, 1] %like% "Sci-Fi")1 else 0)
-genres_df$Sport = sapply(1:41, function(x) if (genres_df[x, 1] %like% "Sport")1 else 0)
-genres_df$Thriller = sapply(1:41, function(x) if (genres_df[x, 1] %like% "Thriller")1 else 0)
-genres_df$War = sapply(1:41, function(x) if (genres_df[x, 1] %like% "War")1 else 0)
 
 
-means1 <- rep(0,15)
-for (i in 1:15) {
-  means1[i] <- mean(as.numeric(genres_df$imDbRating[genres_df[i+2]==1]))
-}
+
 # plot the means
-ge1 = c("Action", "Adventure", "Biography", "Comedy", "Crime", "Drama", "Family", "Fantasy", 
-       "Horror", "Mystery", "Romance", "SciFi", "Sport", "Thriller", "War")
-barplot(means1, main = "Average IMDb rating for different genres")
 
-plotdf1 = as_tibble(means1) %>% mutate("genre"=0)
-plotdf1$genre = ge1
-plotdf1 %>% mutate("maxi" = 0) 
-plotdf1 %>% mutate("mini" = 0)
-ma1 <- rep(0,15)
-for (i in 1:15) {
-  ma1[i] <- max(as.numeric(genres_df$imDbRating[genres_df[i+2]==1]))
-}
-mi1 <- rep(0,15)
-for (i in 1:15) {
-  mi1[i] <- min(as.numeric(genres_df$imDbRating[genres_df[i+2]==1]))
-}
-
-plotdf1$maxi = ma1
-plotdf1$mini = mi1
-plotdf1 %>% ggplot(aes(genre, means1))+ geom_bar(stat = "identity", width = 0.5, fill = "tomato3") +
+plotdf1 %>% ggplot(aes(genre, value))+ geom_bar(stat = "identity", width = 0.5, fill = "tomato3") +
   xlab("New Genre") + ylab("Mean rating") +
   labs(subtitle = "Genre Vs Rating in popular movies", title = "Barplot", caption = "Source: df_popu_ex") +
   theme(axis.text.x = element_text(angle = 65, vjust = 0.6))
