@@ -72,6 +72,9 @@ ggplot(rate_vs_count_popum, aes(x = V2, y = V1)) +
   xlab("Counts") + ylab("Rates")
 df_popumovies %>% select(rank, rankUpDown, title, year, imDbRating, imDbRatingCount) %>% 
   filter(imDbRatingCount == "2379513") 
+
+write.table(df_250movies,'df_250movies.csv',row.names = F, col.names = T,sep = ',')
+write.table(df_popumovies,'df_popumovies.csv',row.names = F, col.names = T,sep = ',')
 # The list of popular movies may alter, so we final make it as a dataset in 4.24
 # df_popumovies <- as_tibble(recipe_popumovies$items)
 
@@ -114,7 +117,7 @@ df_250m_ex %>% select(id, rank, title, year, genre, duration, country, descripti
 df_250m_ex %>% select(id, rank, title, year) %>% filter(year>2019)
 ## Soul and Zack Snyder's Justice League are quite new, the make up dataset does not contain the records.
 
-
+write.table(df_250m_ex,'df_250m_ex.csv',row.names = F, col.names = T,sep = ',')
 
 library(data.table)
 # create new genres for top 250
@@ -169,6 +172,7 @@ for (i in 1:20) {
 
 plotdf$maxi = ma
 plotdf$mini = mi
+write.table(plotdf,'plotdf.csv',row.names = F, col.names = T,sep = ',')
 plotdf %>% ggplot(aes(genre, means))+ geom_bar(stat = "identity", width = 0.5, fill = "tomato3") +
   labs(tittle = "Average IMDb rating for different genres") +
   theme(axis.text.x = element_text(angle = 65, vjust = 0.6))
@@ -187,36 +191,37 @@ plotdf %>% ggplot(aes(genre, mini))+ geom_bar(stat = "identity", width = 0.5, fi
 #######################
 
 df_popu_ex <- left_join(df_popumovies,extra_df,by = c("id" = "imdb_title_id"))%>% drop_na()
-
+# save csv file
+write.table(df_popu_ex,'df_popu_ex.csv',row.names = F, col.names = T,sep = ',')
 df_popu_ex %>% count(genre, sort = T)
 dim(df_popu_ex)
 
 # create new genres for popular
-genres_df <- df_popu_ex %>% select(genre, imDbRating)
-genres_df$Action = sapply(1:41, function(x) if (genres_df[x, 1] %like% "Action")1 else 0)
+genres_df1 <- df_popu_ex %>% select(genre, imDbRating)
+genres_df1$Action = sapply(1:41, function(x) if (genres_df1[x, 1] %like% "Action")1 else 0)
 
-genres_df$Adventure = sapply(1:41, function(x) if (genres_df[x, 1] %like% "Adventure")1 else 0)
+genres_df1$Adventure = sapply(1:41, function(x) if (genres_df1[x, 1] %like% "Adventure")1 else 0)
 
-genres_df$Biography = sapply(1:41, function(x) if (genres_df[x, 1] %like% "Biography")1 else 0)
-genres_df$Comedy = sapply(1:41, function(x) if (genres_df[x, 1] %like% "Comedy")1 else 0)
-genres_df$Crime = sapply(1:41, function(x) if (genres_df[x, 1] %like% "Crime")1 else 0)
-genres_df$Drama = sapply(1:41, function(x) if (genres_df[x, 1] %like% "Drama")1 else 0)
-genres_df$Family = sapply(1:41, function(x) if (genres_df[x, 1] %like% "Family")1 else 0)
-genres_df$Fantasy = sapply(1:41, function(x) if (genres_df[x, 1] %like% "Fantasy")1 else 0)
+genres_df1$Biography = sapply(1:41, function(x) if (genres_df1[x, 1] %like% "Biography")1 else 0)
+genres_df1$Comedy = sapply(1:41, function(x) if (genres_df1[x, 1] %like% "Comedy")1 else 0)
+genres_df1$Crime = sapply(1:41, function(x) if (genres_df1[x, 1] %like% "Crime")1 else 0)
+genres_df1$Drama = sapply(1:41, function(x) if (genres_df1[x, 1] %like% "Drama")1 else 0)
+genres_df1$Family = sapply(1:41, function(x) if (genres_df1[x, 1] %like% "Family")1 else 0)
+genres_df1$Fantasy = sapply(1:41, function(x) if (genres_df1[x, 1] %like% "Fantasy")1 else 0)
 
-genres_df$Horror = sapply(1:41, function(x) if (genres_df[x, 1] %like% "Horror")1 else 0)
+genres_df1$Horror = sapply(1:41, function(x) if (genres_df1[x, 1] %like% "Horror")1 else 0)
 
-genres_df$Mystery = sapply(1:41, function(x) if (genres_df[x, 1] %like% "Mystery")1 else 0)
-genres_df$Romance = sapply(1:41, function(x) if (genres_df[x, 1] %like% "Romance")1 else 0)
-genres_df$SciFi = sapply(1:41, function(x) if (genres_df[x, 1] %like% "Sci-Fi")1 else 0)
-genres_df$Sport = sapply(1:41, function(x) if (genres_df[x, 1] %like% "Sport")1 else 0)
-genres_df$Thriller = sapply(1:41, function(x) if (genres_df[x, 1] %like% "Thriller")1 else 0)
-genres_df$War = sapply(1:41, function(x) if (genres_df[x, 1] %like% "War")1 else 0)
+genres_df1$Mystery = sapply(1:41, function(x) if (genres_df1[x, 1] %like% "Mystery")1 else 0)
+genres_df1$Romance = sapply(1:41, function(x) if (genres_df1[x, 1] %like% "Romance")1 else 0)
+genres_df1$SciFi = sapply(1:41, function(x) if (genres_df1[x, 1] %like% "Sci-Fi")1 else 0)
+genres_df1$Sport = sapply(1:41, function(x) if (genres_df1[x, 1] %like% "Sport")1 else 0)
+genres_df1$Thriller = sapply(1:41, function(x) if (genres_df1[x, 1] %like% "Thriller")1 else 0)
+genres_df1$War = sapply(1:41, function(x) if (genres_df1[x, 1] %like% "War")1 else 0)
 
 
 means1 <- rep(0,15)
 for (i in 1:15) {
-  means1[i] <- mean(as.numeric(genres_df$imDbRating[genres_df[i+2]==1]))
+  means1[i] <- mean(as.numeric(genres_df1$imDbRating[genres_df1[i+2]==1]))
 }
 # plot the means
 ge1 = c("Action", "Adventure", "Biography", "Comedy", "Crime", "Drama", "Family", "Fantasy", 
@@ -230,15 +235,16 @@ plotdf1 %>% mutate("maxi" = 0)
 plotdf1 %>% mutate("mini" = 0)
 ma1 <- rep(0,15)
 for (i in 1:15) {
-  ma1[i] <- max(as.numeric(genres_df$imDbRating[genres_df[i+2]==1]))
+  ma1[i] <- max(as.numeric(genres_df1$imDbRating[genres_df1[i+2]==1]))
 }
 mi1 <- rep(0,15)
 for (i in 1:15) {
-  mi1[i] <- min(as.numeric(genres_df$imDbRating[genres_df[i+2]==1]))
+  mi1[i] <- min(as.numeric(genres_df1$imDbRating[genres_df1[i+2]==1]))
 }
 
 plotdf1$maxi = ma1
 plotdf1$mini = mi1
+write.table(plotdf1,'plotdf1.csv',row.names = F, col.names = T,sep = ',')
 plotdf1 %>% ggplot(aes(genre, means1))+ geom_bar(stat = "identity", width = 0.5, fill = "tomato3") +
   labs(tittle = "Average IMDb rating for different genres") +
   theme(axis.text.x = element_text(angle = 65, vjust = 0.6))
