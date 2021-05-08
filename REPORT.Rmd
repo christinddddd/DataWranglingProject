@@ -92,8 +92,8 @@ Seperate genres into individual topic, and plot the mean, maximum and minimum ra
 
 ```{r}
 
-plotdf < as_tibble(read.csv('plotdf.csv'))
-plotdf1 < as_tibble(read.csv('plotdf1.csv'))
+plotdf <- as_tibble(read.csv('plotdf.csv'))
+plotdf1 <- as_tibble(read.csv('plotdf1.csv'))
 
 plotdf %>% ggplot(aes(genre, value))+ geom_bar(stat = "identity", width = 0.5, fill = "tomato3") +
   xlab("New Genre") + ylab("Mean rating") +
@@ -145,6 +145,17 @@ There is not much difference in ratings for different genres in top 250 list, in
 It seems to be difficult to distinguish in ratings of movies by only looking as the genre, especially in the top 250 movies. As a result, a sentiment analysis was conducted on the description of movies. Some common features are presented in the following figure: world, family, war and crime. There is a correlation coefficient, 0.3414 though not large.
 
 ```{r}
+library(tidytext)
+word_250 <- df_250m_ex %>% unnest_tokens(word, description) %>%
+  anti_join(stop_words)
+
+word_250 %>% count(word, sort = T) %>% head()
+
+word_popu <- df_popu_ex %>% unnest_tokens(word, description) %>%
+  anti_join(stop_words)
+
+word_popu %>% count(word, sort = T) %>% head()
+library(tidyr)
 freq <- bind_rows(mutate(word_250, movie = "top 250"),
                   mutate(word_popu, movie = "popular")) %>%
   mutate(word = str_extract(word, "[a-z]+")) %>% # exclude words in abnormal format, e.g. any'day
@@ -170,8 +181,6 @@ frequency %>% filter(!(`top 250` == "NA" | `popular` == "NA")) %>% select(,2:3) 
 Then check the 10 most common bigrams. Perhaps people are care about war, the top three bigrams in the top 250 movies are related to war, whether in reality or in fictional world.
 
 ```{r}
-library(tidytext)
-library(tidyr)
 # ten most common bigrams in two lists
 bigram_250 <- df_250m_ex %>% unnest_tokens(bigram, description, token = "ngrams", n = 2) %>%
   filter(bigram != "NA")
